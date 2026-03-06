@@ -10,6 +10,9 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <!-- QZ Tray Dependencies (Local to avoid Adblockers) -->
+    <script src="{{ asset('js/sha256.min.js') }}"></script>
+    <script src="{{ asset('js/qz-tray.min.js') }}"></script>
 </head>
 
 <body class="h-full bg-slate-950 font-sans antialiased text-white overflow-hidden">

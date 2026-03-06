@@ -363,7 +363,7 @@
                 </div>
 
                 <div class="flex gap-3 px-6 pb-5">
-                    <button onclick="window.print()" class="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-800 transition-colors">
+                    <button wire:click="reprintReceipt" class="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-800 transition-colors">
                         🖨️ Imprimer
                     </button>
                     <button wire:click="closeReceipt" class="flex-1 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-500 transition-colors">
@@ -392,5 +392,72 @@
 
         Livewire.on('scan-success', () => clearFeedback());
         Livewire.on('scan-error', () => clearFeedback());
+
+        // --- QZ Tray Logic ---
+        Livewire.on('print-receipt', (event) => {
+            // Support Livewire 3 and 2 event payloads safely without throwing TypeError
+            const receipt = event?.receipt || event?.[0]?.receipt || event?.[0] || event; 
+            if (!receipt || !receipt.id) return;
+
+            // Connecter à QZ
+            qz.websocket.connect().then(() => {
+                return qz.printers.getDefault(); // Obtenir l'imprimante par défaut
+            }).then((printer) => {
+                console.log("Impression sur : " + printer);
+                let config = qz.configs.create(printer);
+
+                // Construire les données ESC/POS (largeur standard 80mm ~ 48 caractères / 58mm ~ 32 caractères)
+                let data = [
+                    '\x1B' + '\x40',          // Initialiser l'imprimante
+                    '\x1B' + '\x61' + '\x01', // Alignement centré
+                    '\x1B' + '\x45' + '\x01', // Gras activé
+                    'SuperPOS\n',
+                    '\x1B' + '\x45' + '\x00', // Gras désactivé
+                    'Recu officiel\n',
+                    '--------------------------------\n',
+                    '\x1B' + '\x61' + '\x00', // Alignement à gauche
+                    'Recu #' + receipt.id + '\n',
+                    'Date : ' + receipt.date + '\n',
+                    'Caissier : ' + receipt.cashier + '\n',
+                    '--------------------------------\n',
+                ];
+
+                // Liste des articles
+                receipt.items.forEach(item => {
+                    data.push(item.name + '\n');
+                    data.push(item.quantity + ' x ' + item.unit_price + ' F' + '  =  ' + item.subtotal + ' F\n');
+                });
+
+                data.push('--------------------------------\n');
+                
+                if (receipt.discount_amount > 0) {
+                     data.push('Remise : -' + receipt.discount_amount + ' F\n');
+                }
+                
+                data.push('\x1B' + '\x45' + '\x01'); // Gras activé
+                data.push('TOTAL : ' + receipt.total_amount + ' F\n');
+                data.push('\x1B' + '\x45' + '\x00'); // Gras désactivé
+                
+                data.push('Paiement : ' + receipt.payment_method.toUpperCase() + '\n');
+                data.push('--------------------------------\n');
+                data.push('\x1B' + '\x61' + '\x01'); // Alignement centré
+                data.push('Merci pour votre achat !\n\n\n\n');
+                
+                // Couper le papier et ouvrir le tiroir-caisse
+                data.push('\x1D' + '\x56' + '\x41' + '\x10'); // Coupe partielle/totale (dépend du modèle)
+                data.push('\x1B' + '\x70' + '\x00' + '\x19' + '\xFA'); // Ouvrir le tiroir caisse (Pin 2)
+
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Impression réussie !");
+            }).catch((err) => {
+                console.error("Erreur QZ Tray : ", err);
+                alert("Erreur d'impression : Vérifiez que QZ Tray est lancé.\n" + err);
+            }).finally(() => {
+                if (qz.websocket.isActive()) {
+                    qz.websocket.disconnect();
+                }
+            });
+        });
     });
 </script>

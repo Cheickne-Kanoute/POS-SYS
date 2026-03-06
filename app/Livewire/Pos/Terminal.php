@@ -212,10 +212,29 @@ class Terminal extends Component
             $this->lastSale = $sale->fresh(['items.product', 'cashier']);
         });
 
+        $receiptData = [
+            'id' => $this->lastSale->id,
+            'date' => $this->lastSale->created_at->format('d/m/Y H:i'),
+            'cashier' => $this->lastSale->cashier->name,
+            'items' => $this->lastSale->items->map(function ($item) {
+                return [
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'unit_price' => (float) $item->unit_price,
+                    'subtotal' => (float) $item->subtotal,
+                ];
+            })->toArray(),
+            'discount_amount' => (float) $this->lastSale->discount_amount,
+            'total_amount' => (float) $this->lastSale->total_amount,
+            'payment_method' => $this->lastSale->payment_method,
+        ];
+
         $this->cart = [];
         $this->discountAmount = 0;
         $this->showPaymentModal = false;
         $this->showReceiptModal = true;
+
+        $this->dispatch('print-receipt', receipt: $receiptData);
     }
 
     public function cancelSale(): void
@@ -229,6 +248,32 @@ class Terminal extends Component
     {
         $this->showReceiptModal = false;
         $this->lastSale = null;
+    }
+
+    public function reprintReceipt(): void
+    {
+        if (!$this->lastSale) {
+            return;
+        }
+
+        $receiptData = [
+            'id' => $this->lastSale->id,
+            'date' => $this->lastSale->created_at->format('d/m/Y H:i'),
+            'cashier' => $this->lastSale->cashier->name,
+            'items' => $this->lastSale->items->map(function ($item) {
+                return [
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'unit_price' => (float) $item->unit_price,
+                    'subtotal' => (float) $item->subtotal,
+                ];
+            })->toArray(),
+            'discount_amount' => (float) $this->lastSale->discount_amount,
+            'total_amount' => (float) $this->lastSale->total_amount,
+            'payment_method' => $this->lastSale->payment_method,
+        ];
+
+        $this->dispatch('print-receipt', receipt: $receiptData);
     }
 
     public function render()

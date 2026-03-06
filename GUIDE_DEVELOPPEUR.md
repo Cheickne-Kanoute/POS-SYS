@@ -119,3 +119,22 @@ Lors de vos développements sur ce système :
 - Modifiez l'interface grâce à **Tailwind CSS**. Le design système est épuré, n'utilisez pas de Javascript vanilla si Livewire/Alpine.js peut s'en charger côté composant.
 - Ne retirez jamais la logique de transaction de base de données (`DB::transaction`) présente dans `Terminal.php` : un plantage serveur pendant une vente entraînerait un paiement enregistré mais aucun stock décrémenté, ou inversement.
 - Consultez régulièrement `storage/logs/laravel.log` en développement pour le débogage.
+
+---
+
+## 🖨️ 9. Impression Thermique & QZ Tray
+
+L'application intègre un système d'impression directe (silencieuse) vers les imprimantes thermiques locales via le standard **ESC/POS** en utilisant **QZ Tray**.
+
+### Fonctionnement Technique
+1. **Les dépendances JS** (`qz-tray.min.js` et `sha256.min.js`) sont chargées localement depuis le dossier `public/js/` afin de ne pas être bloquées par les bloqueurs de publicités ou les protections anti-pistage des navigateurs stricts (Brave, Firefox Strict, Edge). (Elles sont injectées dans `pos.blade.php`).
+2. **Dispatch Livewire** : Dans `Terminal.php`, lorsque la méthode `completeSale()` s'exécute avec succès, ou quand l'utilisateur clique sur le bouton de réimpression (`reprintReceipt()`), un événement nommé `print-receipt` est dispatché au navigateur contenant le "payload" formaté du ticket.
+3. **Le Listener JavaScript** (situé à la fin de `terminal.blade.php`) capte cet événement.
+4. **Connexion & Envoi** : JavaScript se connecte localement au service QZ Tray web-socket (`wss://localhost:8181`), trouve l'imprimante système par défaut, et lui envoie un flux de commandes hexadécimales **ESC/POS** pures.
+   - Initialisation (`\x1B\x40`)
+   - Centrage texte, formatage (Gros, etc.)
+   - Itération sur les produits
+   - Commandes finales : Coupe du papier thermique (`\x1D\x56\x41\x10`) et Ouverture impulsionnelle du tiroir-caisse connecté (`\x1B\x70\x00\x19\xFA`).
+
+### Maintenance
+Si un modèle d'imprimante ne coupe pas le papier ou n'ouvre pas le tiroir, il faut généralement ajuster les codes hexadécimaux à la fin du listener JavaScript dans `terminal.blade.php`, car certaines marques chinoises non-Epson utilisent des pins de déclenchement différents pour le RJ11 du tiroir-caisse.
