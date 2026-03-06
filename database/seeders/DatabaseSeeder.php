@@ -63,24 +63,33 @@ class DatabaseSeeder extends Seeder
 
         // Create Products
         $products = [
-            ['name' => 'Mineral Water 1.5L', 'barcode' => '1000001', 'price' => 500, 'stock' => 100, 'category_id' => 1],
-            ['name' => 'Coca-Cola 33cl', 'barcode' => '1000002', 'price' => 750, 'stock' => 80, 'category_id' => 1],
-            ['name' => 'Orange Juice 1L', 'barcode' => '1000003', 'price' => 1200, 'stock' => 60, 'category_id' => 1],
-            ['name' => 'Whole Milk 1L', 'barcode' => '1000004', 'price' => 900, 'stock' => 50, 'category_id' => 2],
-            ['name' => 'Yogurt 250g', 'barcode' => '1000005', 'price' => 600, 'stock' => 40, 'category_id' => 2],
-            ['name' => 'Baguette', 'barcode' => '1000006', 'price' => 350, 'stock' => 30, 'category_id' => 3],
-            ['name' => 'Croissant', 'barcode' => '1000007', 'price' => 450, 'stock' => 25, 'category_id' => 3],
-            ['name' => 'Apple 1kg', 'barcode' => '1000008', 'price' => 1500, 'stock' => 45, 'category_id' => 4],
-            ['name' => 'Banana 1kg', 'barcode' => '1000009', 'price' => 800, 'stock' => 55, 'category_id' => 4],
-            ['name' => 'Chicken Breast 1kg', 'barcode' => '1000010', 'price' => 3500, 'stock' => 20, 'category_id' => 5],
-            ['name' => 'Potato Chips 100g', 'barcode' => '1000011', 'price' => 650, 'stock' => 70, 'category_id' => 6],
-            ['name' => 'Chocolate Bar 50g', 'barcode' => '1000012', 'price' => 500, 'stock' => 90, 'category_id' => 6],
-            ['name' => 'Dish Soap 500ml', 'barcode' => '1000013', 'price' => 1100, 'stock' => 35, 'category_id' => 7],
-            ['name' => 'Laundry Detergent 1kg', 'barcode' => '1000014', 'price' => 2200, 'stock' => 28, 'category_id' => 7],
-            ['name' => 'Shampoo 400ml', 'barcode' => '1000015', 'price' => 1800, 'stock' => 22, 'category_id' => 8],
+            ['name' => 'Mineral Water 1.5L', 'price' => 500, 'stock' => 100, 'category_id' => 1],
+            ['name' => 'Coca-Cola 33cl', 'price' => 750, 'stock' => 80, 'category_id' => 1],
+            ['name' => 'Orange Juice 1L', 'price' => 1200, 'stock' => 60, 'category_id' => 1],
+            ['name' => 'Whole Milk 1L', 'price' => 900, 'stock' => 50, 'category_id' => 2],
+            ['name' => 'Yogurt 250g', 'price' => 600, 'stock' => 40, 'category_id' => 2],
+            ['name' => 'Baguette', 'price' => 350, 'stock' => 30, 'category_id' => 3],
+            ['name' => 'Croissant', 'price' => 450, 'stock' => 25, 'category_id' => 3],
+            ['name' => 'Apple 1kg', 'price' => 1500, 'stock' => 45, 'category_id' => 4],
+            ['name' => 'Banana 1kg', 'price' => 800, 'stock' => 55, 'category_id' => 4],
+            ['name' => 'Chicken Breast 1kg', 'price' => 3500, 'stock' => 20, 'category_id' => 5],
+            ['name' => 'Potato Chips 100g', 'price' => 650, 'stock' => 70, 'category_id' => 6],
+            ['name' => 'Chocolate Bar 50g', 'price' => 500, 'stock' => 90, 'category_id' => 6],
+            ['name' => 'Dish Soap 500ml', 'price' => 1100, 'stock' => 35, 'category_id' => 7],
+            ['name' => 'Laundry Detergent 1kg', 'price' => 2200, 'stock' => 28, 'category_id' => 7],
+            ['name' => 'Shampoo 400ml', 'price' => 1800, 'stock' => 22, 'category_id' => 8],
         ];
 
-        foreach ($products as $product) {
+        foreach ($products as $index => $product) {
+            // EAN-13 generation: 12 digits (base) + 1 checksum
+            $body = str_pad($index + 100000000000, 12, '0', STR_PAD_LEFT);
+            $sum = 0;
+            for ($i = 0; $i < 12; $i++) {
+                $sum += (int) $body[$i] * (($i % 2 === 0) ? 1 : 3);
+            }
+            $checkDigit = (10 - ($sum % 10)) % 10;
+            $product['barcode'] = $body . $checkDigit;
+
             Product::create($product);
         }
     }

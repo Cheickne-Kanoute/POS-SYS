@@ -22,6 +22,8 @@ class Terminal extends Component
     public bool $showReceiptModal = false;
     public ?Sale $lastSale = null;
     public ?CashSession $session = null;
+    public string $scanFeedback = '';
+    public bool $scanSuccess = false;
 
     public function mount(): void
     {
@@ -70,14 +72,14 @@ class Terminal extends Component
 
         if (isset($this->cart[$productId])) {
             if ($this->cart[$productId]['quantity'] >= $product->stock) {
-                session()->flash('error', 'Insufficient stock.');
+                session()->flash('error', 'Stock insuffisant.');
                 return;
             }
             $this->cart[$productId]['quantity']++;
             $this->cart[$productId]['subtotal'] = round($this->cart[$productId]['quantity'] * $this->cart[$productId]['unit_price'], 2);
         } else {
             if ($product->stock < 1) {
-                session()->flash('error', 'Product out of stock.');
+                session()->flash('error', 'Produit épuisé.');
                 return;
             }
             $this->cart[$productId] = [
@@ -88,6 +90,38 @@ class Terminal extends Component
                 'subtotal' => (float) $product->price,
                 'stock' => $product->stock,
             ];
+        }
+    }
+
+    /**
+     * Déclenché quand l'utilisateur appuie sur Entrée dans la barre de recherche.
+     * Si la valeur correspond exactement à un code-barres → ajout au panier.
+     * Sinon → la recherche normale reste active.
+     */
+    public function scanBarcode(): void
+    {
+        $query = trim($this->search);
+
+        if (empty($query)) {
+            return;
+        }
+
+        $product = Product::active()
+            ->where('barcode', $query)
+            ->first();
+
+        if ($product) {
+            $this->addToCart($product->id);
+            $this->search = '';
+            $this->scanFeedback = '✓ ' . $product->name . ' ajouté au panier';
+            $this->scanSuccess = true;
+            // Reset feedback after 2s via JS
+            $this->dispatch('scan-success');
+        } else {
+            // Aucun code-barres exact trouvé → on laisse la recherche textuelle active
+            $this->scanFeedback = 'Aucun produit avec ce code-barres';
+            $this->scanSuccess = false;
+            $this->dispatch('scan-error');
         }
     }
 

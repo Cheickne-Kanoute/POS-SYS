@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Picqer\Barcode\BarcodeGenerator;
+use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class ProductManagement extends Component
 {
@@ -76,8 +78,89 @@ class ProductManagement extends Component
         $this->showModal = true;
     }
 
+    /**
+     * Génère un code-barres EAN-13 unique.
+     */
+    private function generateUniqueBarcode(): string
+    {
+        do {
+            // EAN-13: 12 chiffres + 1 checksum calculé automatiquement
+            $body = str_pad(mt_rand(1, 999999999999), 12, '0', STR_PAD_LEFT);
+            // Calcul du chiffre de contrôle EAN-13
+            $sum = 0;
+            for ($i = 0; $i < 12; $i++) {
+                $sum += (int) $body[$i] * (($i % 2 === 0) ? 1 : 3);
+            }
+            $checkDigit = (10 - ($sum % 10)) % 10;
+            $barcode = $body . $checkDigit;
+        } while (Product::where('barcode', $barcode)->exists());
+
+        return $barcode;
+    }
+
+    /**
+     * Génère (ou régénère) un code-barres pour le produit en cours d'édition/création.
+     */
+    public function generateBarcode(): void
+    {
+        $this->barcode = $this->generateUniqueBarcode();
+    }
+
+    /**
+     * Génère et persiste un code-barres pour un produit existant sans barcode.
+     */
+    public function generateBarcodeForProduct(int $productId): void
+    {
+        $product = Product::findOrFail($productId);
+        if (!$product->barcode) {
+            $product->update(['barcode' => $this->generateUniqueBarcode()]);
+            session()->flash('success', 'Code-barres généré avec succès.');
+        }
+    }
+
+    /**
+     * Retourne le SVG du code-barres courant dans le formulaire.
+     */
+    public function getBarcodeSvgProperty(): string
+    {
+        if (strlen($this->barcode) < 8) {
+            return '';
+        }
+        $generator = new BarcodeGeneratorSVG();
+        return $generator->getBarcode(
+            $this->barcode,
+            BarcodeGenerator::TYPE_EAN_13,
+            2,
+            60,
+            'black'
+        );
+    }
+
+    /**
+     * Retourne le SVG du code-barres pour un produit donné.
+     */
+    public function getProductBarcodeSvg(Product $product): string
+    {
+        if (!$product->barcode || strlen($product->barcode) < 8) {
+            return '';
+        }
+        $generator = new BarcodeGeneratorSVG();
+        return $generator->getBarcode(
+            $product->barcode,
+            BarcodeGenerator::TYPE_EAN_13,
+            1.5,
+            50,
+            'black'
+        );
+    }
+
     public function save(): void
     {
+        // Auto-génère un barcode si le champ est vide (création uniquement)
+        if (!$this->isEditing && empty($this->barcode)) {
+            $this->barcode = $this->generateUniqueBarcode();
+        }
+
         $this->validate();
 
         $data = [
@@ -91,10 +174,10 @@ class ProductManagement extends Component
 
         if ($this->isEditing) {
             Product::findOrFail($this->editingId)->update($data);
-            session()->flash('success', 'Product updated successfully.');
+            session()->flash('success', 'Produit mis à jour avec succès.');
         } else {
             Product::create($data);
-            session()->flash('success', 'Product created successfully.');
+            session()->flash('success', 'Produit créé avec succès.');
         }
 
         $this->closeModal();
@@ -128,7 +211,9 @@ class ProductManagement extends Component
 
     public function render()
     {
-        return view('livewire.admin.product-management')
-            ->layout('components.layouts.app');
+        /** @var \Illuminate\View\View $view */
+        $view = view('livewire.admin.product-management');
+
+        return $view->layout('components.layouts.app');
     }
 }

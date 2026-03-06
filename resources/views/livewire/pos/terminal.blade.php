@@ -3,26 +3,50 @@
     {{-- LEFT PANEL: Products --}}
     <div class="flex-1 flex flex-col bg-slate-950 border-r border-slate-800 min-w-0">
 
-        {{-- Top Bar: Search --}}
+        {{-- Top Bar: Search + Scanner --}}
         <div class="p-3 border-b border-slate-800 shrink-0">
             <div class="relative">
+                {{-- Icône scanner ou loupe --}}
                 <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input
                     wire:model.live.debounce.200ms="search"
+                    wire:keydown.enter="scanBarcode"
                     type="text"
-                    placeholder="Rechercher un produit ou scanner..."
+                    placeholder="Rechercher ou scanner un code-barres (Entrée)..."
                     autofocus
-                    class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    class="w-full pl-10 pr-10 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                     id="pos-search"
                 >
+                {{-- Icône scanner à droite --}}
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 14v1M4 12H3m18 0h-1M6.343 6.343l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707.707"/>
+                    </svg>
+                </div>
                 @if($search)
-                    <button wire:click="$set('search', '')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                    <button wire:click="$set('search', '')" class="absolute right-8 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 @endif
             </div>
+
+            {{-- Scan Feedback --}}
+            @if($scanFeedback)
+                <div @class([
+                    'mt-2 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all',
+                    'bg-emerald-900/40 border border-emerald-700 text-emerald-300' => $scanSuccess,
+                    'bg-red-900/40 border border-red-700 text-red-300' => !$scanSuccess,
+                ])>
+                    @if($scanSuccess)
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    @else
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    @endif
+                    {{ $scanFeedback }}
+                </div>
+            @endif
         </div>
 
         {{-- Category Tabs --}}
@@ -351,3 +375,22 @@
     @endif
 
 </div>
+
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        let feedbackTimer = null;
+
+        function clearFeedback() {
+            if (feedbackTimer) clearTimeout(feedbackTimer);
+            feedbackTimer = setTimeout(() => {
+                @this.set('scanFeedback', '');
+                // Refocus the search input
+                const input = document.getElementById('pos-search');
+                if (input) input.focus();
+            }, 2000);
+        }
+
+        Livewire.on('scan-success', () => clearFeedback());
+        Livewire.on('scan-error', () => clearFeedback());
+    });
+</script>

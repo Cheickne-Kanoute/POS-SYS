@@ -1,15 +1,15 @@
 <div>
     <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-white">Categories</h1>
-            <p class="text-slate-400 text-sm mt-1">Organize your products by category</p>
+            <h1 class="text-2xl font-bold text-white">Catégories</h1>
+            <p class="text-slate-400 text-sm mt-1">Organisez vos produits par catégorie</p>
         </div>
         <button wire:click="openCreateModal"
             class="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-all text-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add Category
+            Nouvelle catégorie
         </button>
     </div>
 
@@ -26,7 +26,7 @@
                     </div>
                     <div>
                         <p class="font-semibold text-white">{{ $category->name }}</p>
-                        <p class="text-xs text-slate-500 mt-0.5">{{ $category->products_count }} product(s)</p>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $category->products_count }} produit(s)</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -37,7 +37,7 @@
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                     </button>
-                    <button wire:click="delete({{ $category->id }})" wire:confirm="Delete this category?"
+                    <button wire:click="delete({{ $category->id }})" wire:confirm="Supprimer cette catégorie ?"
                         class="p-1.5 bg-red-900/40 hover:bg-red-800/50 text-red-400 rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -47,7 +47,8 @@
                 </div>
             </div>
         @empty
-            <div class="col-span-full py-12 text-center text-slate-500 text-sm">No categories yet. Create one!</div>
+            <div class="col-span-full py-12 text-center text-slate-500 text-sm">Aucune catégorie pour le moment. Créez-en
+                une !</div>
         @endforelse
     </div>
 
@@ -55,7 +56,8 @@
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl">
                 <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-                    <h2 class="text-base font-semibold text-white">{{ $isEditing ? 'Edit Category' : 'New Category' }}</h2>
+                    <h2 class="text-base font-semibold text-white">
+                        {{ $isEditing ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}</h2>
                     <button wire:click="$set('showModal', false)" class="text-slate-500 hover:text-slate-300"><svg
                             class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -63,17 +65,17 @@
                         </svg></button>
                 </div>
                 <div class="p-6">
-                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Category Name <span
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Nom de la catégorie <span
                             class="text-red-400">*</span></label>
-                    <input wire:model="name" type="text" placeholder="e.g. Beverages"
+                    <input wire:model="name" type="text" placeholder="ex: Boissons"
                         class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                     @error('name') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                 </div>
                 <div class="px-6 pb-5 flex gap-3">
                     <button wire:click="$set('showModal', false)"
-                        class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition-colors">Cancel</button>
+                        class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition-colors">Annuler</button>
                     <button wire:click="save"
-                        class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-all">Save</button>
+                        class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition-all">Enregistrer</button>
                 </div>
             </div>
         </div>
