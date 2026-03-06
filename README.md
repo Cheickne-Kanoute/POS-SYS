@@ -66,3 +66,28 @@ Un guide détaillé de l'architecture, du workflow et de la structure de la base
 
 ## 🛡️ Licence
 Ce projet est propriétaire. Réservé à l'usage interne.
+
+
+Amelioration future:
+1. Gestion de la Relation Client (CRM & Fidélité)
+Base de Données Clients : Pouvoir enregistrer un client lors de la vente pour associer les factures à un nom.
+Cartes de Fidélité : Système de points (ex: 1€ = 1 point) permettant d'offrir des remises automatiques après un certain seuil.
+Crédit Client : Permettre à certains clients de confiance de prendre des articles et de payer plus tard (gestion des dettes).
+2. Rapports & Statistiques Avancés (Business Intelligence)
+Graphiques Visuels : Intégrer une bibliothèque comme Chart.js pour afficher les tendances de ventes (courbes de revenus mensuels, camembert des produits les plus vendus).
+Exportation : Ajouter des boutons d'exportation des rapports de vente en formats Excel ou PDF pour la comptabilité.
+Analyse de Marge : Ajouter un champ "Prix d'achat" sur les produits pour calculer automatiquement le bénéfice réel (Marge = Prix de vente - Prix d'achat).
+3. Gestion Avancée des Stocks & Fournisseurs
+Alertes de Stock Bas : Envoyer un email ou afficher une notification rouge dans l'admin quand un produit descend en dessous d'un seuil critique (ex: moins de 5 unités).
+Gestion des Fournisseurs : Créer une table Suppliers pour savoir qui fournit quel produit.
+Bons de Commande : Générer des documents PDF pour commander du stock auprès des fournisseurs.
+4. Améliorations de l'Interface (UX/UI)
+Mode Sombre / Clair : Permettre de basculer entre un thème sombre (reposant pour les yeux) et clair.
+Effets Sonores : Ajouter un petit "Beep" de confirmation lors d'un scan de code-barre réussi (très utile pour le caissier qui ne regarde pas toujours son écran).
+Raccourcis Clavier : Assigner des touches (ex: F10 pour payer, F2 pour rechercher) pour accélérer le travail sans utiliser la souris.
+5. Multi-Imprimantes & Secteurs (Cuisines)
+Impression Séparée : Si vous vendez de la nourriture, pouvoir envoyer les boissons sur l'imprimante du bar et les plats sur l'imprimante de la cuisine simultanément lors d'une seule validation de vente.
+Gestion des Tables : Pour un restaurant, transformer le Terminal en plan de salle avec des tables occupées/libres.
+6. Fonctionnalités "Mobile" et Mobilité
+PWA (Progressive Web App) : Rendre l'application installable sur smartphone ou tablette comme une application native.
+Scanner Mobile : Utiliser la caméra du téléphone via JavaScript pour scanner les codes-barres sans avoir besoin d'une douchette USB.
